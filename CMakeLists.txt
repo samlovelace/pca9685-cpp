@@ -1,69 +1,37 @@
-cmake_minimum_required(VERSION 3.25)
-project(PiPCA9685 VERSION 1.0.0)
+cmake_minimum_required(VERSION 3.10)
+project(pca9685 VERSION 1.0.0)
+set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_STANDARD 23)
-
-#
-# Dependencies
-#
-
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
-message(STATUS "Using Python interpreter: ${Python_EXECUTABLE}")
-
-find_package(pybind11 REQUIRED)
-
-#
-# LIBRARY
-#
-
-add_library(PiPCA9685_cpp
+set(SOURCES
     src/PCA9685.cpp
     src/I2CPeripheral.cpp
 )
-target_sources(PiPCA9685_cpp
-    PUBLIC
-    FILE_SET HEADERS
-    BASE_DIRS include
-    FILES
-    include/PiPCA9685/PCA9685.h
-)
-target_link_libraries(PiPCA9685_cpp i2c)
-set_property(TARGET PiPCA9685_cpp PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_target_properties(PiPCA9685_cpp PROPERTIES
-    OUTPUT_NAME PiPCA9685
-    EXPORT_NAME PiPCA9685
+
+add_library(${PROJECT_NAME} ${SOURCES})
+
+target_link_libraries(${PROJECT_NAME} i2c)
+
+target_include_directories(${PROJECT_NAME} PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-add_library(PiPCA9685::PiPCA9685 ALIAS PiPCA9685_cpp)
-
-#
-# PYTHON BINDINGS
-#
-
-pybind11_add_module(PiPCA9685_python src/PCA9685-Python.cpp)
-set_target_properties(PiPCA9685_python PROPERTIES OUTPUT_NAME PiPCA9685)
-target_link_libraries(PiPCA9685_python PRIVATE PiPCA9685_cpp)
-
-#
 # INSTALLATION
-#
-
 include(GNUInstallDirs)
 
-install(TARGETS PiPCA9685_cpp
-    EXPORT PiPCA9685_export
-    FILE_SET HEADERS
+install(TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}_export
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-install(TARGETS PiPCA9685_python
-    DESTINATION ${Python_SITEARCH}
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-install(EXPORT PiPCA9685_export
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/PiPCA9685
-    NAMESPACE PiPCA9685::
-    FILE PiPCA9685Config.cmake
+install(EXPORT ${PROJECT_NAME}_export
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pca9685
+    NAMESPACE ${PROJECT_NAME}::
+    FILE pca9685Config.cmake
 )
 
 if(NOT TARGET uninstall)

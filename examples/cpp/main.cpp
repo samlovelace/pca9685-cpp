@@ -1,9 +1,9 @@
 #include <unistd.h>
-#include <PiPCA9685/PCA9685.h>
+#include <pca9685/PCA9685.h>
 
 int main() {
   
-  PiPCA9685::PCA9685 pca{};
+  PCA9685::PCA9685 pca{};
 
   pca.set_pwm_freq(60.0);
   
